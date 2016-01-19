@@ -1,0 +1,7 @@
+AHRS Library 1.4 4-Aug-2015
+Improvements over 1.0:
+1) Support 100 usec system tick(T.L. Shen)
+
+Bug Fixes / Parameter changes:
+- fix MAG calbration QC error(T.L. Shen)
+------------------------------------------------------------------
