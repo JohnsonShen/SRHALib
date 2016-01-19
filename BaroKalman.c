@@ -21,9 +21,9 @@
 #include "Kalman.h"
 #define BARO_SAMPLE_NUMBER 20
 #define BARO_INIT_COUNT 100
-bool beInitialize = false;
-bool beSTDDV = false;
-int  start_counter = 0;
+bool beInitialize[MAX_AHRS] = {false};
+bool beSTDDV[MAX_AHRS] = {false};
+int  start_counter[MAX_AHRS] = {0};
 typedef struct   
 { 
 	int16_t buffer[BARO_SAMPLE_NUMBER];
@@ -66,15 +66,15 @@ void CalStandardDV(StandardDVType* baro)
 }
 void BaroFilter(int16_t *raw)
 {
-	if(beInitialize==false) {
+	if(beInitialize[AHRSID]==false) {
 		Pressure.buffercount = 0;
 		Temperature.buffercount = 0;
-		if(start_counter++>BARO_INIT_COUNT)
-			beInitialize = true;
+		if(start_counter[AHRSID]++>BARO_INIT_COUNT)
+			beInitialize[AHRSID] = true;
 		
 		return;
 	}
-	if(beSTDDV==true) {
+	if(beSTDDV[AHRSID]==true) {
 		float temp;
 		TimeUpdate(0);
 		temp = MeasurementUpdate(0, raw[0]);
@@ -97,7 +97,7 @@ void BaroFilter(int16_t *raw)
 			KalmanInit(0, Pressure.std_dev);
 			KalmanInit(1, Temperature.std_dev);
 			//printf("P:%f    T:%f\n",Pressure.std_dev,Temperature.std_dev);
-			beSTDDV = true;
+			beSTDDV[AHRSID] = true;
 		}
 	}
 }

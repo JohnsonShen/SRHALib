@@ -64,9 +64,9 @@ void setup_mag_beta()
 	beta[0] = Ellipsoid.mean[0];
 	beta[1] = Ellipsoid.mean[1];
 	beta[2] = Ellipsoid.mean[2];
-  beta[3] = CalInfo.MagGaussPLSB;
-	beta[4] = CalInfo.MagGaussPLSB;
-	beta[5] = CalInfo.MagGaussPLSB;
+  beta[3] = CalInfo[AHRSID].MagGaussPLSB;
+	beta[4] = CalInfo[AHRSID].MagGaussPLSB;
+	beta[5] = CalInfo[AHRSID].MagGaussPLSB;
   beta[6] = 0.000f;
 	beta[7] = 0.000f;
 	beta[8] = 0.000f;
@@ -551,7 +551,7 @@ void VerifyBetaMag(signed short* data, int sample_count)
 		F_x = (x_m_beta_2[0]*beta[3] + x_m_beta_2[1]*beta[4] + x_m_beta_2[2]*beta[5] +
 					2.0f*(x_m_beta[0]*x_m_beta[1]*beta[6] + x_m_beta[1]*x_m_beta[2]*beta[7] + x_m_beta[0]*x_m_beta[2]*beta[8]));
 		
-		CalInfo.MagCalQuality+=(F_x- beta[9]*beta[9]);
+		CalInfo[AHRSID].MagCalQuality+=(F_x- beta[9]*beta[9]);
 		F_x = F_x/(beta[9]*beta[9]);
 		DBG_PRINT("sample %d:%f\n",sample_count,F_x);
 }
@@ -781,8 +781,8 @@ void AccZCalibrate(int16_t* data_acc, int sample_count)
 	}
 	beta_acc[0] = sum_acc[0]/sample_count;
 	beta_acc[1] = sum_acc[1]/sample_count;
-	beta_acc[2] = sum_acc[2]/sample_count - (1/CalInfo.AccG_PER_LSB);
-	beta_acc[3] = CalInfo.AccG_PER_LSB;
-	beta_acc[4] = CalInfo.AccG_PER_LSB;
-	beta_acc[5] = CalInfo.AccG_PER_LSB;
+	beta_acc[2] = sum_acc[2]/sample_count - (1/CalInfo[AHRSID].AccG_PER_LSB);
+	beta_acc[3] = CalInfo[AHRSID].AccG_PER_LSB;
+	beta_acc[4] = CalInfo[AHRSID].AccG_PER_LSB;
+	beta_acc[5] = CalInfo[AHRSID].AccG_PER_LSB;
 }

@@ -18,17 +18,19 @@
 #include <stdint.h>
 #include "AHRSLib.h"
 #include "Common.h"
-int16_t BufferRawMAG[SAMPLE_SIZE_MAG*3];
-int16_t BufferIndexMag;
-float MagGuass;
+int16_t BufferRawMAG[MAX_AHRS][SAMPLE_SIZE_MAG*3];
+int16_t BufferIndexMag[MAX_AHRS];
+float MagGuass[MAX_AHRS];
 void nvtCalMAGInit()
 {
-	BufferIndexMag = 0;
-	
-	SensorState.beCalibrated[MAG] = false;
-	CalInfo.MagCalQuality = 0;
-	CalInfo.RestoreRawSmooth[MAG] = SensorState.RawSmooth.enable[MAG];
-	SensorState.RawSmooth.enable[MAG] = false;
+  int i;
+  for(i=0;i<MAX_AHRS;i++) {
+	BufferIndexMag[i] = 0;
+	SensorState[i].beCalibrated[MAG] = false;
+	CalInfo[i].MagCalQuality = 0;
+	CalInfo[i].RestoreRawSmooth[MAG] = SensorState[AHRSID].RawSmooth.enable[MAG];
+	SensorState[i].RawSmooth.enable[MAG] = false;
+  }
 }
 void UpdateCalibrateInfoMAG()
 {
@@ -36,54 +38,59 @@ void UpdateCalibrateInfoMAG()
 	int i;
 	BetaMAG = GetCalibrateParams(SENSOR_MAG);
 	for(i=0;i<MAG_BETA_SIZE;i++)
-		CalInfo.MagInvW[i] = BetaMAG[i];
+		CalInfo[AHRSID].MagInvW[i] = BetaMAG[i];
 
-	SensorState.beCalibrated[MAG]  = true;
+	SensorState[AHRSID].beCalibrated[MAG]  = true;
 }
 void SetCalibrateMAG()
 {
 	int i;
 	float X_B0, Y_B1, Z_B2, B[MAG_BETA_SIZE];
 
-	if((SensorState.RawMAG[0]!=0)||(SensorState.RawMAG[1]!=0)||(SensorState.RawMAG[2]!=0)) {	
-	for(i=0;i<MAG_BETA_SIZE;i++)
-		B[i]=CalInfo.MagInvW[i];
-	
-	X_B0 = (SensorState.RawMAG[0] -  B[0]);
-	Y_B1 = (SensorState.RawMAG[1] -  B[1]);
-	Z_B2 = (SensorState.RawMAG[2] -  B[2]);
-	
-	AttitudeInfo.CalMAG[0] = B[3]*X_B0 + B[6]*Y_B1 + B[8]*Z_B2;
-  AttitudeInfo.CalMAG[1] = B[6]*X_B0 + B[4]*Y_B1 + B[7]*Z_B2;
-  AttitudeInfo.CalMAG[2] = B[8]*X_B0 + B[7]*Y_B1 + B[5]*Z_B2;
-}
+	if((SensorState[AHRSID].RawMAG[0]!=0)||(SensorState[AHRSID].RawMAG[1]!=0)||(SensorState[AHRSID].RawMAG[2]!=0)) {	
+		for(i=0;i<MAG_BETA_SIZE;i++)
+			B[i]=CalInfo[AHRSID].MagInvW[i];
+		
+		X_B0 = (SensorState[AHRSID].RawMAG[0] -  B[0]);
+		Y_B1 = (SensorState[AHRSID].RawMAG[1] -  B[1]);
+		Z_B2 = (SensorState[AHRSID].RawMAG[2] -  B[2]);
+		
+		AttitudeInfo[AHRSID].CalMAG[0] = B[3]*X_B0 + B[6]*Y_B1 + B[8]*Z_B2;
+		AttitudeInfo[AHRSID].CalMAG[1] = B[6]*X_B0 + B[4]*Y_B1 + B[7]*Z_B2;
+		AttitudeInfo[AHRSID].CalMAG[2] = B[8]*X_B0 + B[7]*Y_B1 + B[5]*Z_B2;
+	}
 	else {
-		AttitudeInfo.CalMAG[0] = 0;
-		AttitudeInfo.CalMAG[1] = 0;
-		AttitudeInfo.CalMAG[2] = 0;
+		AttitudeInfo[AHRSID].CalMAG[0] = 0;
+		AttitudeInfo[AHRSID].CalMAG[1] = 0;
+		AttitudeInfo[AHRSID].CalMAG[2] = 0;
 	}
 }
 void nvtGetCalibratedMAG(float* CalMAG)
 {
-	CalMAG[0] = AttitudeInfo.CalMAG[0];
-	CalMAG[1] = AttitudeInfo.CalMAG[1];
-	CalMAG[2] = AttitudeInfo.CalMAG[2];
+	CalMAG[0] = AttitudeInfo[AHRSID].CalMAG[0];
+	CalMAG[1] = AttitudeInfo[AHRSID].CalMAG[1];
+	CalMAG[2] = AttitudeInfo[AHRSID].CalMAG[2];
+}
+void nvtGetCalibratedHALL(float* CalHALL)
+{
+	CalHALL[0] = SensorState[0].RawHALL[0];
+	CalHALL[1] = SensorState[0].RawHALL[1];
 }
 int8_t nvtCalMAGBufferFill()
 {	
 	int16_t byteIndex;
 	
-	byteIndex = BufferIndexMag*3;
-	BufferRawMAG[byteIndex] = SensorState.RawMAG[0];
-	BufferRawMAG[byteIndex+1] = SensorState.RawMAG[1];
-	BufferRawMAG[byteIndex+2] = SensorState.RawMAG[2];
+	byteIndex = BufferIndexMag[AHRSID]*3;
+	BufferRawMAG[AHRSID][byteIndex] = SensorState[AHRSID].RawMAG[0];
+	BufferRawMAG[AHRSID][byteIndex+1] = SensorState[AHRSID].RawMAG[1];
+	BufferRawMAG[AHRSID][byteIndex+2] = SensorState[AHRSID].RawMAG[2];
 	//DBG_PRINT("%f  %f  %f\n", SensorState.RawMAG[0], SensorState.RawMAG[1], SensorState.RawMAG[2]);
-	BufferIndexMag++;
+	BufferIndexMag[AHRSID]++;
 
-	if(BufferIndexMag>=SAMPLE_SIZE_MAG) {
-			MagCalibrate(BufferRawMAG, SAMPLE_SIZE_MAG);
+	if(BufferIndexMag[AHRSID]>=SAMPLE_SIZE_MAG) {
+			MagCalibrate(&BufferRawMAG[AHRSID][0], SAMPLE_SIZE_MAG);
 			UpdateCalibrateInfoMAG();
-			SensorState.RawSmooth.enable[MAG] = CalInfo.RestoreRawSmooth[MAG];
+			SensorState[AHRSID].RawSmooth.enable[MAG] = CalInfo[AHRSID].RestoreRawSmooth[MAG];
 			return STATUS_CAL_DONE;
 	}
 	else
@@ -91,25 +98,25 @@ int8_t nvtCalMAGBufferFill()
 }
 void nvtSetMagGaussPLSB(float GaussPLSB)
 {
-	CalInfo.MagGaussPLSB = GaussPLSB;
+	CalInfo[AHRSID].MagGaussPLSB = GaussPLSB;
 }
 uint8_t nvtGetMagCalQFactor()
 {
 	uint8_t QF;
 
-	if((CalInfo.MagCalQuality>255)||(CalInfo.MagCalQuality<-255)||(CalInfo.MagCalQuality==0))
+	if((CalInfo[AHRSID].MagCalQuality>255)||(CalInfo[AHRSID].MagCalQuality<-255)||(CalInfo[AHRSID].MagCalQuality==0))
 		QF=255;
 	else
-		QF = (uint8_t)fabs(CalInfo.MagCalQuality);
+		QF = (uint8_t)fabs(CalInfo[AHRSID].MagCalQuality);
 
 	return QF;
 }
 void SetMagGuass()
 {
-	MagGuass = sqrt(AttitudeInfo.CalMAG[0]*AttitudeInfo.CalMAG[0]+ AttitudeInfo.CalMAG[1]*AttitudeInfo.CalMAG[1]+
-	AttitudeInfo.CalMAG[2]*AttitudeInfo.CalMAG[2]);
+	MagGuass[AHRSID] = sqrt(AttitudeInfo[AHRSID].CalMAG[0]*AttitudeInfo[AHRSID].CalMAG[0]+ AttitudeInfo[AHRSID].CalMAG[1]*AttitudeInfo[AHRSID].CalMAG[1]+
+	AttitudeInfo[AHRSID].CalMAG[2]*AttitudeInfo[AHRSID].CalMAG[2]);
 }
 float GetMagGuass()
 {
-	return MagGuass;
+	return MagGuass[AHRSID];
 }

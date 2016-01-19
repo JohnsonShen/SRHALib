@@ -48,13 +48,26 @@
 #define GYRO 1
 #define MAG  2
 #define BARO 3
+#define HALL 4
 #define SENSOR_ACC        (1<<ACC)
 #define SENSOR_GYRO       (1<<GYRO)
 #define SENSOR_MAG        (1<<MAG)
 #define SENSOR_BARO       (1<<BARO)
+#define SENSOR_HALL       (1<<HALL)
 #define GYRO_CAL_DATA_SIZE    6
 #define ACC_CAL_DATA_SIZE     6
 #define MAG_CAL_DATA_SIZE    10
+typedef struct {
+  int16_t actuatorThrust;
+  int16_t  actuatorRoll;
+  int16_t  actuatorPitch;
+  int16_t  actuatorYaw;
+  int16_t  actuatorSpeed;
+} ACTUATOR_T;
+typedef struct  {
+  float MotorOffset[2];
+  float MotorScale[2];
+}MotorCal_t;
 void nvtGetEulerRPY(float*);
 /* w x y z */
 void nvtGetQuaternion(float*);
@@ -67,11 +80,13 @@ void nvtGetGYRODegree(float*);
 void nvtGetVelocity(float* Velocity);
 void nvtGetMove(float* Move);
 void nvtSetMove(float* Move);
+void nvtGetFusionSpeed(float* Speed);
 void nvtResetMove(void);
 
 void nvtGetCalibratedGYRO(float*);
 void nvtGetCalibratedACC(float*);
 void nvtGetCalibratedMAG(float*);
+void nvtGetCalibratedHALL(float*);
 
 void nvtAHRSInit(void);
 void nvtUpdateAHRS(uint8_t UPDATE);
@@ -81,6 +96,7 @@ void nvtInputSensorRawACC(int16_t *raw);
 void nvtInputSensorRawGYRO(int16_t *raw);
 void nvtInputSensorRawMAG(int16_t *raw);
 void nvtInputSensorRawBARO(int16_t *raw);
+void nvtInputSensorRawHALL(int16_t *raw);
 void nvtInputSensorRaw9D(int16_t *RawACC, int16_t *RawGYRO, int16_t *RawMAG);
 
 void nvtGetAccZWithoutGravity(float *ZWithoutGravity, float *AccZMag);
@@ -89,6 +105,7 @@ void nvtGetAccScale(float*);
 void nvtGetGyroOffset(float* );
 void nvtGetGyroScale(float*);
 void nvtGetMagCalMatrix(float*);
+char nvtGetAHRSID(void);
 void nvtSetAccOffset(float* AccMean);
 void nvtSetAccScale(float* AccScale);
 void nvtSetGyroOffset(float* GyroMean);
@@ -97,10 +114,13 @@ void nvtSetGYRODegPLSB(float DPLSB);
 void nvtSetAccG_PER_LSB(float G_PER_LSB);
 void nvtSetMagCalMatrix(float* MagCalMatrix);
 
+void nvtSetAHRSID(char id);
+
 void nvtGetSensorRawACC(int16_t *raw);
 void nvtGetSensorRawGYRO(int16_t *raw);
 void nvtGetSensorRawMAG(int16_t *raw);
 void nvtGetSensorRawBARO(uint16_t *raw);
+void nvtGetSensorRawHALL(int16_t *raw);
 void nvtGetSensorRaw9D(int16_t *RawACC, int16_t *RawGYRO, int16_t *RawMAG);
 //void nvtSetSensorEnable(char SensorType, char enable);
 
@@ -117,6 +137,9 @@ void nvtCalMAGInit(void);
 void nvtSetMagGaussPLSB(float);
 uint8_t nvtGetMagCalQFactor(void);
 void nvtSmoothSensorRawData(unsigned char enable, char sensor);
+void nvtActuatorFusionFilter(ACTUATOR_T* pActuator);
+void nvtGetActuatorSmooth(int16_t* actuatorSmooth);
+void nvtSetMotorSmooth(MotorCal_t* MotorCal);
 #endif	//__AHRS_LIB_H__
 
 

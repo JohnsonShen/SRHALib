@@ -25,8 +25,10 @@
 #else
 #define DBG_PRINT(S...)
 #endif
-#define RAW_SMOOTH_BUFFER_SIZE 11
-#define MAX_SENSOR 4
+#define RIGHT 0
+#define LEFT  1
+#define MAX_SENSOR 5
+#define MAX_AHRS   2
 #define null 0
 #define false 0
 #define true 	1
@@ -37,9 +39,13 @@
 #define GYRO_DIM 3 
 #define MAG_DIM  3
 #define BARO_DIM 2 
-
+#define HALL_DIM 2 
+#define AHRDID_0 0
+#define AHRDID_1 1
+#define RAW_SMOOTH_BUFFER_SIZE (ACC_DIM+GYRO_DIM+MAG_DIM+BARO_DIM+HALL_DIM)
 #define DOF      (ACC_DIM + GYRO_DIM + MAG_DIM + BARO_DIM)
 #define GUARD	if(CheckSecurityID()) return;
+extern char AHRSID;
 typedef struct {
 	float w;
 	float x;
@@ -58,7 +64,7 @@ typedef struct {
 	float 		MagCalQuality; 
 	bool      RestoreRawSmooth[MAX_SENSOR];
 } CalibrateInfo;
-extern CalibrateInfo CalInfo;
+extern CalibrateInfo CalInfo[MAX_AHRS];
 typedef struct {
 	float     RingBuffer[DOF][RAW_SMOOTH_BUFFER_SIZE];	
 	char			Index[MAX_SENSOR];
@@ -75,9 +81,10 @@ typedef struct {
 	float     			RawGYRO[GYRO_DIM];
 	float     			RawMAG[MAG_DIM];
 	float           RawBARO[BARO_DIM];
+	float           RawHALL[HALL_DIM];
 	RawSmooth_T     RawSmooth;
 } SensorStateInfo;
-extern SensorStateInfo SensorState;
+extern SensorStateInfo SensorState[MAX_AHRS];
 
 typedef struct {
 uint32_t lastTime;
@@ -101,7 +108,7 @@ float CalGYRO[GYRO_DIM];
 float CalMAG[MAG_DIM];
 
 } AttitudeInfo_T;
-extern AttitudeInfo_T AttitudeInfo;
+extern AttitudeInfo_T AttitudeInfo[MAX_AHRS];
 
 float* GetCalibrateParams(int8_t sensorType);
 float TimerRead(void);

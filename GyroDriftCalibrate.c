@@ -20,8 +20,8 @@
 #include "GyroDriftCalibrate.h"
 #define STD_DEV_SUM_TH 30
 #define STD_DEV_TH  2
-static GyroDriftType gyroDrift[3];
-int16_t HistogramValue[GYRO_SAMPLE_NUMBER],HistogramCount[GYRO_SAMPLE_NUMBER];
+static GyroDriftType gyroDrift[MAX_AHRS][3];
+int16_t HistogramValue[MAX_AHRS][GYRO_SAMPLE_NUMBER],HistogramCount[MAX_AHRS][GYRO_SAMPLE_NUMBER];
 void shiftBufferR(int16_t start,int16_t* buffer)
 {
 	int i;
@@ -70,23 +70,23 @@ void CheckMode(GyroDriftType* gyroDrift)
 	for(i=0;i<GYRO_SAMPLE_NUMBER;i++) {
 		hit=0;
 		for(j=0;j<HistogramNum;j++) {
-			if(gyroDrift->buffer[i]==HistogramValue[j]) {
-				HistogramCount[j]++;
+			if(gyroDrift->buffer[i]==HistogramValue[AHRSID][j]) {
+				HistogramCount[AHRSID][j]++;
 				hit=1;
 			}
 		}
 		if(!hit) {
-			HistogramValue[HistogramNum]=gyroDrift->buffer[i];
-			HistogramCount[HistogramNum++]++;
+			HistogramValue[AHRSID][HistogramNum]=gyroDrift->buffer[i];
+			HistogramCount[AHRSID][HistogramNum++]++;
 		}	
 	}
 	for(j=0;j<HistogramNum;j++) {
-		if(MaxHistogram<HistogramCount[j]) {
-			MaxHistogram=HistogramCount[j];
+		if(MaxHistogram<HistogramCount[AHRSID][j]) {
+			MaxHistogram=HistogramCount[AHRSID][j];
 			MaxHistogramIndex=j;
 		}
 	}
-	gyroDrift->mode=HistogramValue[MaxHistogramIndex];
+	gyroDrift->mode=HistogramValue[AHRSID][MaxHistogramIndex];
 }
 void CheckEmpirical(GyroDriftType* gyroDrift)
 {
@@ -193,29 +193,29 @@ void quickSortIterative (int16_t arr[], int16_t l, int16_t h)
 }
 void GetGyroDynamicCenter(float* gx, float* gy, float* gz)
 {
-	*gx=SensorState.GyroDynamicCenter[0];
-	*gy=SensorState.GyroDynamicCenter[1];
-	*gz=SensorState.GyroDynamicCenter[2];
+	*gx=SensorState[AHRSID].GyroDynamicCenter[0];
+	*gy=SensorState[AHRSID].GyroDynamicCenter[1];
+	*gz=SensorState[AHRSID].GyroDynamicCenter[2];
 }
 void CheckNormalDistribution()
 {
 	float std_dev_sum;
-	std_dev_sum = gyroDrift[0].std_dev + gyroDrift[1].std_dev + gyroDrift[2].std_dev;
+	std_dev_sum = gyroDrift[AHRSID][0].std_dev + gyroDrift[AHRSID][1].std_dev + gyroDrift[AHRSID][2].std_dev;
 	//if((gyroDrift[0].std_dev<=STD_DEV_TH)&&(gyroDrift[1].std_dev<=STD_DEV_TH)&&(gyroDrift[2].std_dev<=STD_DEV_TH)) 
 	if(std_dev_sum<STD_DEV_SUM_TH)
 	{
-		SensorState.GyroDynamicCenter[0]=gyroDrift[0].mean;
-		SensorState.GyroDynamicCenter[1]=gyroDrift[1].mean;
-		SensorState.GyroDynamicCenter[2]=gyroDrift[2].mean;
-		SensorState.beGyroSteady = true;
+		SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].mean;
+		SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].mean;
+		SensorState[AHRSID].GyroDynamicCenter[2]=gyroDrift[AHRSID][2].mean;
+		SensorState[AHRSID].beGyroSteady = true;
 	}
 	else {
-		SensorState.beGyroSteady = false;
+		SensorState[AHRSID].beGyroSteady = false;
 	}
 }
 int8_t CheckGyroNormalParam(GyroDriftType* gyroDrift)
 {
-	quickSortIterative (&gyroDrift->buffer[0],0,GYRO_SAMPLE_NUMBER-1);
+	quickSortIterative(&gyroDrift->buffer[0],0,GYRO_SAMPLE_NUMBER-1);
 	CheckMean(gyroDrift);
 	CheckStandardDV(gyroDrift);
 	CheckMedian(gyroDrift);
@@ -223,35 +223,28 @@ int8_t CheckGyroNormalParam(GyroDriftType* gyroDrift)
 	CheckEmpirical(gyroDrift);
 	gyroDrift->buffercount=0;
 	return STATUS_NORMAL;
-#if 0
-	DBG_PRINTF("mean:%f\n",gyroDrift->mean);
-	DBG_PRINTF("median:%d\n",gyroDrift->median);
-	DBG_PRINTF("mode:%d\n",gyroDrift->mode);
-	DBG_PRINTF("std_dev:%f\n",gyroDrift->std_dev);
-	DBG_PRINTF("empirical:%d %d %d\n",gyroDrift->empirical[0],gyroDrift->empirical[1],gyroDrift->empirical[2]);
-#endif
 }
 void GyroDynamicCalibrate(int16_t gx, int16_t gy, int16_t gz)
 {
 	bool dataReady;
-	dataReady=pushBuffer(&gyroDrift[0], gx);
-	dataReady=pushBuffer(&gyroDrift[1], gy);
-	dataReady=pushBuffer(&gyroDrift[2], gz);
+	dataReady=pushBuffer(&gyroDrift[AHRSID][0], gx);
+	dataReady=pushBuffer(&gyroDrift[AHRSID][1], gy);
+	dataReady=pushBuffer(&gyroDrift[AHRSID][2], gz);
 	
 	if(dataReady) {
-		CheckGyroNormalParam(&gyroDrift[0]);
-		CheckGyroNormalParam(&gyroDrift[1]);
-		CheckGyroNormalParam(&gyroDrift[2]);
+		CheckGyroNormalParam(&gyroDrift[AHRSID][0]);
+		CheckGyroNormalParam(&gyroDrift[AHRSID][1]);
+		CheckGyroNormalParam(&gyroDrift[AHRSID][2]);
 		CheckNormalDistribution();
 	}
 }
 GyroDriftType GyroDynamicGetDrift(int8_t axis)
 {
-	return gyroDrift[axis];
+	return gyroDrift[AHRSID][axis];
 }
 bool GyroDynamicGetSteady()
 {
-	return SensorState.beGyroSteady;
+	return SensorState[AHRSID].beGyroSteady;
 }
 void GyroDynamicInit()
 {
