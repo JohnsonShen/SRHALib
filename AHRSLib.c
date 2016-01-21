@@ -41,16 +41,16 @@ float GetAHRSPeriod()
 }
 void TimerSet()
 {
-	TimeInfo.currentTime = TimeInfo.tick_counter;
-  TimeInfo.lastTime = TimeInfo.currentTime;
+	TimeInfo.currentTime[AHRSID] = TimeInfo.tick_counter;
+  TimeInfo.lastTime[AHRSID] = TimeInfo.currentTime[AHRSID];
 }
 void TimerStart()
 {
-	TimeInfo.currentTime = TimeInfo.lastTime = TimeInfo.tick_counter;
+	TimeInfo.currentTime[AHRSID] = TimeInfo.lastTime[AHRSID] = TimeInfo.tick_counter;
 }
 float TimerRead()
 {
-	return (TimeInfo.tick_counter-TimeInfo.currentTime)/10000.0f;
+	return (TimeInfo.tick_counter-TimeInfo.currentTime[AHRSID])/10000.0f;
 }
 
 
@@ -115,9 +115,12 @@ void CalInfoInit()
 }
 void TimeInfoInit()
 {
-	TimeInfo.lastTime = 0;
-	TimeInfo.interval = 0;
-	TimeInfo.currentTime = 0;
+  int i;
+  for(i=0;i<MAX_AHRS;i++) {
+    TimeInfo.lastTime[i] = 0;
+    TimeInfo.interval[i] = 0;
+    TimeInfo.currentTime[i] = 0;
+   }
 	TimeInfo.tick_counter = 0;
 }
 void nvtAHRSInit()

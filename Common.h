@@ -87,9 +87,9 @@ typedef struct {
 extern SensorStateInfo SensorState[MAX_AHRS];
 
 typedef struct {
-uint32_t lastTime;
-uint32_t interval;
-uint32_t currentTime;
+uint32_t lastTime[MAX_AHRS];
+uint32_t interval[MAX_AHRS];
+uint32_t currentTime[MAX_AHRS];
 uint32_t tick_counter;
 } TimeFrameInfo;
 extern TimeFrameInfo TimeInfo;
