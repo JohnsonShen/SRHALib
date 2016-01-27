@@ -382,6 +382,15 @@ bool checkMagFail(float mxf, float myf, float mzf)
 	return false;
 	
 }
+bool checkAccFail(float axf, float ayf, float azf)
+{
+	if((axf == 0.0f) && (ayf == 0.0f) && (azf == 0.0f)) {
+		return true;
+	}
+	
+	return false;
+	
+}
 void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, float azf, float mxf, float myf, float mzf, float dt) 
 {
 	float recipNorm;
@@ -397,6 +406,11 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 		sensfusion6UpdateQ(gxf, gyf, gzf, axf, ayf, azf, dt);
 		return;
 	}
+  else if(checkAccFail(axf, ayf, azf)) {
+		sensfusionMagUpdateQ(0.0f,0.0f,0.0f,0.0f,0.0f,1.0f,mxf,myf,mzf,dt);
+		return;
+	}
+
 	if(((gxf == 0.0f) && (gyf == 0.0f) && (gzf == 0.0f)))
 		no_gyro_factor = 8.0f;
 
@@ -499,7 +513,205 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 	ComputeEuler();
   ComputeMotion(axf, ayf, azf, recipNorm, dt);
 }
+void sensfusionMagUpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, float azf, float mxf, float myf, float mzf, float dt) 
+{
+	float recipNorm;
+  float q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;  
+	float hx, hy, bx, bz;
+	float halfvx, halfvy, halfvz, halfwx, halfwy, halfwz;
+	float halfex, halfey, halfez;
+	float qa, qb, qc;
+	float no_gyro_factor = 0.0f;
 
+	if(((gxf == 0.0f) && (gyf == 0.0f) && (gzf == 0.0f)))
+		no_gyro_factor = 8.0f;
+
+	gx[AHRSID] = gxf * M_PI / 180.0f;
+  gy[AHRSID] = gyf * M_PI / 180.0f;
+  gz[AHRSID] = gzf * M_PI / 180.0f;
+	
+	gx_deg[AHRSID] += gxf*dt;
+	gy_deg[AHRSID] += gyf*dt;
+	gz_deg[AHRSID] += gzf*dt;
+	
+  azf = 1.0f;
+	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+	if(!((axf == 0.0f) && (ayf == 0.0f) && (azf == 0.0f))) {
+
+		// Normalise accelerometer measurement
+		recipNorm = invSqrt(axf * axf + ayf * ayf + azf * azf);
+		ax[AHRSID] = axf*recipNorm;
+		ay[AHRSID] = ayf*recipNorm;
+		az[AHRSID] = azf*recipNorm;     
+		
+		// Normalise magnetometer measurement
+		recipNorm = invSqrt(mxf * mxf + myf * myf + mzf * mzf);
+		mx[AHRSID] = mag_norm[AHRSID][0] = mxf*recipNorm;
+		my[AHRSID] = mag_norm[AHRSID][1] = myf*recipNorm;
+		mz[AHRSID] = mag_norm[AHRSID][2] = mzf*recipNorm;
+
+    // Auxiliary variables to avoid repeated arithmetic
+    q0q0 = q0[AHRSID] * q0[AHRSID];
+    q0q1 = q0[AHRSID] * q1[AHRSID];
+    q0q2 = q0[AHRSID] * q2[AHRSID];
+    q0q3 = q0[AHRSID] * q3[AHRSID];
+    q1q1 = q1[AHRSID] * q1[AHRSID];
+    q1q2 = q1[AHRSID] * q2[AHRSID];
+    q1q3 = q1[AHRSID] * q3[AHRSID];
+    q2q2 = q2[AHRSID] * q2[AHRSID];
+    q2q3 = q2[AHRSID] * q3[AHRSID];
+    q3q3 = q3[AHRSID] * q3[AHRSID];   
+
+    // Reference direction of Earth's magnetic field
+    hx = 2.0f * (mx[AHRSID] * (0.5f - q2q2 - q3q3) + my[AHRSID] * (q1q2 - q0q3) + mz[AHRSID] * (q1q3 + q0q2));
+    hy = 2.0f * (mx[AHRSID] * (q1q2 + q0q3) + my[AHRSID] * (0.5f - q1q1 - q3q3) + mz[AHRSID] * (q2q3 - q0q1));
+    bx = sqrt(hx * hx + hy * hy);
+    bz = 2.0f * (mx[AHRSID] * (q1q3 - q0q2) + my[AHRSID] * (q2q3 + q0q1) + mz[AHRSID] * (0.5f - q1q1 - q2q2));
+
+		// Estimated direction of gravity and magnetic field
+		halfvx = q1q3 - q0q2;
+		halfvy = q0q1 + q2q3;
+		halfvz = q0q0 - 0.5f + q3q3;
+    halfwx = bx * (0.5f - q2q2 - q3q3) + bz * (q1q3 - q0q2);
+    halfwy = bx * (q1q2 - q0q3) + bz * (q0q1 + q2q3);
+    halfwz = bx * (q0q2 + q1q3) + bz * (0.5f - q1q1 - q2q2);  
+	
+		// Error is sum of cross product between estimated direction and measured direction of field vectors
+		halfex = ((ay[AHRSID] * halfvz - az[AHRSID] * halfvy)*2 + (my[AHRSID] * halfwz - mz[AHRSID] * halfwy)*2);
+		halfey = ((az[AHRSID] * halfvx - ax[AHRSID] * halfvz)*2 + (mz[AHRSID] * halfwx - mx[AHRSID] * halfwz)*2);
+		halfez = (ax[AHRSID] * halfvy - ay[AHRSID] * halfvx) + (mx[AHRSID] * halfwy - my[AHRSID] * halfwx);
+		// Compute and apply integral feedback if enabled
+		if(twoKi > 0.0f) {
+			integralFBx[AHRSID] += twoKi * halfex * dt;	// integral error scaled by Ki
+			integralFBy[AHRSID] += twoKi * halfey * dt;
+			integralFBz[AHRSID] += twoKi * halfez * dt;
+			gx[AHRSID] += integralFBx[AHRSID];	// apply integral feedback
+			gy[AHRSID] += integralFBy[AHRSID];
+			gz[AHRSID] += integralFBz[AHRSID];
+		}
+		else {
+			integralFBx[AHRSID] = 0.0f;	// prevent integral windup
+			integralFBy[AHRSID] = 0.0f;
+			integralFBz[AHRSID] = 0.0f;
+		}
+
+		// Apply proportional feedback
+		gx[AHRSID] += twoKp * halfex;
+		gy[AHRSID] += twoKp * halfey;
+		gz[AHRSID] += twoKp * halfez;
+	}
+	
+	// Integrate rate of change of quaternion
+	
+	if(GetTickCounter()>MagMasterTime[AHRSID]) {
+		gx[AHRSID] *= ((0.5f + no_gyro_factor) * dt);		// pre-multiply common factors
+		gy[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+		gz[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+	}
+	qa = q0[AHRSID];
+	qb = q1[AHRSID];
+	qc = q2[AHRSID];
+	q0[AHRSID] += (-qb * gx[AHRSID] - qc * gy[AHRSID] - q3[AHRSID] * gz[AHRSID]);
+	q1[AHRSID] += (qa * gx[AHRSID] + qc * gz[AHRSID] - q3[AHRSID] * gy[AHRSID]);
+	q2[AHRSID] += (qa * gy[AHRSID] - qb * gz[AHRSID] + q3[AHRSID] * gx[AHRSID]);
+	q3[AHRSID] += (qa * gz[AHRSID] + qb * gy[AHRSID] - qc * gx[AHRSID]); 
+	
+	// Normalise quaternion
+	recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+	q0[AHRSID] *= recipNorm;
+	q1[AHRSID] *= recipNorm;
+	q2[AHRSID] *= recipNorm;
+	q3[AHRSID] *= recipNorm;
+	
+	ComputeEuler();
+  ComputeMotion(axf, ayf, azf, recipNorm, dt);
+}
+#if 0
+void sensfusionMagUpdateQ(float mxf, float myf, float mzf, float dt) 
+{
+	float recipNorm;
+	float halfvx, halfvy, halfvz;
+	float halfex, halfey, halfez;
+	float qa, qb, qc;
+	float no_gyro_factor = 0.0f;
+
+	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
+	sensfusion6UpdateQ(0,0,0,mxf, myf, mzf, dt);
+
+	no_gyro_factor = 8.0f;
+
+	gx[AHRSID] = 0;
+  gy[AHRSID] = 0;
+  gz[AHRSID] = 0;
+	
+	gx_deg[AHRSID] += 0;
+	gy_deg[AHRSID] += 0;
+	gz_deg[AHRSID] += 0;
+	
+
+  // Normalise magnetometer measurement
+  recipNorm = invSqrt(mxf * mxf + myf * myf + mzf * mzf);
+  mx[AHRSID] = mag_norm[AHRSID][0] = mxf*recipNorm;
+  my[AHRSID] = mag_norm[AHRSID][1] = myf*recipNorm;
+  mz[AHRSID] = mag_norm[AHRSID][2] = mzf*recipNorm;
+
+  // Estimated direction of gravity and vector perpendicular to magnetic flux
+  halfvx = q1[AHRSID] * q3[AHRSID] - q0[AHRSID] * q2[AHRSID];
+  halfvy = q0[AHRSID] * q1[AHRSID] + q2[AHRSID] * q3[AHRSID];
+  halfvz = q0[AHRSID] * q0[AHRSID] - 0.5f + q3[AHRSID] * q3[AHRSID];
+
+  // Error is sum of cross product between estimated and measured direction of gravity
+  halfex = (my[AHRSID] * halfvz - mz[AHRSID] * halfvy);
+  halfey = (mz[AHRSID] * halfvx - mx[AHRSID] * halfvz);
+  halfez = (mx[AHRSID] * halfvy - my[AHRSID] * halfvx);
+    
+		// Compute and apply integral feedback if enabled
+		if(twoKi > 0.0f) {
+			integralFBx[AHRSID] += twoKi * halfex * dt;	// integral error scaled by Ki
+			integralFBy[AHRSID] += twoKi * halfey * dt;
+			integralFBz[AHRSID] += twoKi * halfez * dt;
+			gx[AHRSID] += integralFBx[AHRSID];	// apply integral feedback
+			gy[AHRSID] += integralFBy[AHRSID];
+			gz[AHRSID] += integralFBz[AHRSID];
+		}
+		else {
+			integralFBx[AHRSID] = 0.0f;	// prevent integral windup
+			integralFBy[AHRSID] = 0.0f;
+			integralFBz[AHRSID] = 0.0f;
+		}
+
+		// Apply proportional feedback
+		gx[AHRSID] += twoKp * halfex;
+		gy[AHRSID] += twoKp * halfey;
+		gz[AHRSID] += twoKp * halfez;
+
+	
+	// Integrate rate of change of quaternion
+	
+	if(GetTickCounter()>MagMasterTime[AHRSID]) {
+		gx[AHRSID] *= ((0.5f + no_gyro_factor) * dt);		// pre-multiply common factors
+		gy[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+		gz[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+	}
+	qa = q0[AHRSID];
+	qb = q1[AHRSID];
+	qc = q2[AHRSID];
+	q0[AHRSID] += (-qb * gx[AHRSID] - qc * gy[AHRSID] - q3[AHRSID] * gz[AHRSID]);
+	q1[AHRSID] += (qa * gx[AHRSID] + qc * gz[AHRSID] - q3[AHRSID] * gy[AHRSID]);
+	q2[AHRSID] += (qa * gy[AHRSID] - qb * gz[AHRSID] + q3[AHRSID] * gx[AHRSID]);
+	q3[AHRSID] += (qa * gz[AHRSID] + qb * gy[AHRSID] - qc * gx[AHRSID]); 
+	
+	// Normalise quaternion
+	recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+	q0[AHRSID] *= recipNorm;
+	q1[AHRSID] *= recipNorm;
+	q2[AHRSID] *= recipNorm;
+	q3[AHRSID] *= recipNorm;
+	
+	ComputeEuler();
+  ComputeMotion(mxf, myf, mzf, recipNorm, dt);
+}
+#endif
 void sensfusion6GetEulerRPY(float* roll, float* pitch, float* yaw)
 {
   *yaw = EulerYd[AHRSID];

@@ -143,6 +143,7 @@ void sensfusion6GetVelocity(float* Velocity);
 void sensfusion6GetMove(float* Move);
 void sensfusion6ResetMove(void);
 void sensfusion6SetMove(float* Move);
+void sensfusionMagUpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, float azf, float mxf, float myf, float mzf, float dt);
 
 void AccFilterInit(void);
 void imuAccIIRLPFilter(int16_t* in, int16_t* out);
