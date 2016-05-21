@@ -117,9 +117,9 @@ int8_t nvtGyroScaleCalibrate(int8_t axis)
 }
 void SetCalibrateGYRO()
 {
-	AttitudeInfo[AHRSID].CalGYRO[0] = (SensorState[AHRSID].RawGYRO[0] -  CalInfo[AHRSID].GyroMean[0]) * CalInfo[AHRSID].GyroScale[0];
-	AttitudeInfo[AHRSID].CalGYRO[1] = (SensorState[AHRSID].RawGYRO[1] -  CalInfo[AHRSID].GyroMean[1]) * CalInfo[AHRSID].GyroScale[1];
-	AttitudeInfo[AHRSID].CalGYRO[2] = (SensorState[AHRSID].RawGYRO[2] -  CalInfo[AHRSID].GyroMean[2]) * CalInfo[AHRSID].GyroScale[2];
+	AttitudeInfo[AHRSID].CalGYRO[0] = (SensorState[AHRSID].RawGYRO[0] -  CalInfo[AHRSID].GyroMean[0]) * CalInfo[AHRSID].GyroScale[0]*CalInfo[AHRSID].GyroDegPLSB;
+	AttitudeInfo[AHRSID].CalGYRO[1] = (SensorState[AHRSID].RawGYRO[1] -  CalInfo[AHRSID].GyroMean[1]) * CalInfo[AHRSID].GyroScale[1]*CalInfo[AHRSID].GyroDegPLSB;
+	AttitudeInfo[AHRSID].CalGYRO[2] = (SensorState[AHRSID].RawGYRO[2] -  CalInfo[AHRSID].GyroMean[2]) * CalInfo[AHRSID].GyroScale[2]*CalInfo[AHRSID].GyroDegPLSB;
 }
 void nvtGetCalibratedGYRO(float* CGYRO)
 {
