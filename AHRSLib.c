@@ -234,7 +234,7 @@ void nvtUpdateAHRS(uint8_t UPDATE)
 
 	period = TimerRead();
 	TimerSet();
-	sensfusion6UpdateMagByEuler();
+	//sensfusion6UpdateMagByEuler();
 }
 void nvtMillisecondTick()
 {
