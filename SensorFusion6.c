@@ -13,8 +13,10 @@
  *                                                                                *
  *================================================================================*
  */
+#include "M451Series.h"
 #include <stdio.h>
 #include <math.h>
+#include <arm_math.h>
 #include "Common.h"
 #define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
 #define TWO_KI_DEF	(2.0f * 0.001f)	// 2 * integral gain
@@ -104,15 +106,15 @@ void ComputeEuler()
   if (qx[AHRSID]>1.0f) qx[AHRSID]=1.0f;
   if (qx[AHRSID]<-1.0f) qx[AHRSID]=-1.0f;
 
-  EulerY[AHRSID] = atan2(2*(q0[AHRSID]*q3[AHRSID] + q1[AHRSID]*q2[AHRSID]), q0[AHRSID]*q0[AHRSID] + q1[AHRSID]*q1[AHRSID] - q2[AHRSID]*q2[AHRSID] - q3[AHRSID]*q3[AHRSID]);
+  EulerY[AHRSID] = atan2f(2*(q0[AHRSID]*q3[AHRSID] + q1[AHRSID]*q2[AHRSID]), q0[AHRSID]*q0[AHRSID] + q1[AHRSID]*q1[AHRSID] - q2[AHRSID]*q2[AHRSID] - q3[AHRSID]*q3[AHRSID]);
 	
-	EulerR[AHRSID] = atan2(qy[AHRSID], qz[AHRSID]);
+	EulerR[AHRSID] = atan2f(qy[AHRSID], qz[AHRSID]);
   //EulerP =atan2(-gx, gy*sin(EulerR)+gz*cos(EulerR));
 	
 	/* Since gy and gz are both very mall the atan2(gy,gz) has a great error, 
 	and EullerP should not reference EulerR(let EulerR=0)*/
 	//if((qy*qy+qz*qz)<0.15f)
-		EulerP[AHRSID] =atan(-qx[AHRSID]/qz[AHRSID]);//atan2(gx, gz);//asin(gx); //Pitch seems to be inverted
+		EulerP[AHRSID] =atan2f(-qx[AHRSID],qz[AHRSID]);//atan2(gx, gz);//asin(gx); //Pitch seems to be inverted
 	//else
 	//	EulerP =atan(-qx/(qy*sin(EulerR)+qz*cos(EulerR)));//atan2(gx, gz);//asin(gx); //Pitch seems to be inverted
 	

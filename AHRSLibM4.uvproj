@@ -48,8 +48,8 @@
           <CreateExecutable>0</CreateExecutable>
           <CreateLib>1</CreateLib>
           <CreateHexFile>0</CreateHexFile>
-          <DebugInformation>0</DebugInformation>
-          <BrowseInformation>0</BrowseInformation>
+          <DebugInformation>1</DebugInformation>
+          <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\lst\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
@@ -334,7 +334,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>0</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>0</OneElfS>
@@ -348,7 +348,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>M451</Define>
+              <Define>M451 ARM_MATH_CM4=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\Library\Device\Nuvoton\M451Series\Include;..\..\..\Library\StdDriver\inc;.\include</IncludePath>
             </VariousControls>
@@ -466,6 +466,11 @@
               <FileType>1</FileType>
               <FilePath>.\TestCode.c</FilePath>
             </File>
+            <File>
+              <FileName>atan2_approximation.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\atan2_approximation.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -495,6 +500,11 @@
               <FileName>fmc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\Library\StdDriver\src\fmc.c</FilePath>
+            </File>
+            <File>
+              <FileName>arm_cortexM4lf_math.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\..\Library\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</FilePath>
             </File>
           </Files>
         </Group>
