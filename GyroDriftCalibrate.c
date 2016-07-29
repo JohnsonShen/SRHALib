@@ -18,10 +18,19 @@
 #include <stdint.h>
 #include "AHRSLib.h"
 #include "GyroDriftCalibrate.h"
-#define STD_DEV_SUM_TH 30
+#define STD_DEV_SUM_TH 100
 #define STD_DEV_TH  2
 static GyroDriftType gyroDrift[MAX_AHRS][3];
 int16_t HistogramValue[MAX_AHRS][GYRO_SAMPLE_NUMBER],HistogramCount[MAX_AHRS][GYRO_SAMPLE_NUMBER];
+int16_t StandardDV = STD_DEV_SUM_TH;
+void nvtSetGyroDeviationTH(int16_t TH)
+{
+  StandardDV = TH;
+}
+int16_t nvtGetGyroDeviationTH()
+{
+  return StandardDV;
+}
 void shiftBufferR(int16_t start,int16_t* buffer)
 {
 	int i;
@@ -202,7 +211,7 @@ void CheckNormalDistribution()
 	float std_dev_sum;
 	std_dev_sum = gyroDrift[AHRSID][0].std_dev + gyroDrift[AHRSID][1].std_dev + gyroDrift[AHRSID][2].std_dev;
 	//if((gyroDrift[0].std_dev<=STD_DEV_TH)&&(gyroDrift[1].std_dev<=STD_DEV_TH)&&(gyroDrift[2].std_dev<=STD_DEV_TH)) 
-	if(std_dev_sum<STD_DEV_SUM_TH)
+	if(std_dev_sum<StandardDV)
 	{
 		SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].mean;
 		SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].mean;
