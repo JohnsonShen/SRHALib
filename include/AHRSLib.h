@@ -144,6 +144,7 @@ void nvtGetActuatorSmooth(int16_t* actuatorSmooth);
 void nvtSetMotorSmooth(MotorCal_t* MotorCal);
 void nvtSetGyroDeviationTH(int16_t TH);
 int16_t nvtGetGyroDeviationTH(void);
+float nvtGetGyroDeviation(void);
 #endif	//__AHRS_LIB_H__
 
 

@@ -23,9 +23,14 @@
 static GyroDriftType gyroDrift[MAX_AHRS][3];
 int16_t HistogramValue[MAX_AHRS][GYRO_SAMPLE_NUMBER],HistogramCount[MAX_AHRS][GYRO_SAMPLE_NUMBER];
 int16_t StandardDV = STD_DEV_SUM_TH;
+float std_dev_sum;
 void nvtSetGyroDeviationTH(int16_t TH)
 {
   StandardDV = TH;
+}
+float nvtGetGyroDeviation()
+{
+  return std_dev_sum;
 }
 int16_t nvtGetGyroDeviationTH()
 {
@@ -208,7 +213,6 @@ void GetGyroDynamicCenter(float* gx, float* gy, float* gz)
 }
 void CheckNormalDistribution()
 {
-	float std_dev_sum;
 	std_dev_sum = gyroDrift[AHRSID][0].std_dev + gyroDrift[AHRSID][1].std_dev + gyroDrift[AHRSID][2].std_dev;
 	//if((gyroDrift[0].std_dev<=STD_DEV_TH)&&(gyroDrift[1].std_dev<=STD_DEV_TH)&&(gyroDrift[2].std_dev<=STD_DEV_TH)) 
 	if(std_dev_sum<StandardDV)

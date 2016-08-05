@@ -18,7 +18,7 @@
 #ifdef NUC122
 #define GYRO_SAMPLE_NUMBER 100
 #else
-#define GYRO_SAMPLE_NUMBER 100
+#define GYRO_SAMPLE_NUMBER 64
 #endif
 #include "Common.h"
 typedef struct   
