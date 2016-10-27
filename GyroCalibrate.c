@@ -45,6 +45,7 @@ int8_t nvtGyroIsSteady()
 int8_t nvtGyroCenterCalibrate()
 {
 	float AccZWithoutG_Base;
+  //GyroDriftType* Drift;
 	SensorState[AHRSID].beGyroSteady = false;
 	GyroDynamicCalibrate(SensorState[AHRSID].RawGYRO[0], SensorState[AHRSID].RawGYRO[1], SensorState[AHRSID].RawGYRO[2]);
 	
@@ -56,6 +57,8 @@ int8_t nvtGyroCenterCalibrate()
 		nvtGetAccZWithoutGravity(&AccZWithoutG_Base, null);
 		SetZWithoutG_Base(AccZWithoutG_Base);
 		SetMagGuass();
+    //Drift = GetGyroDrift(2);
+    //printf("[%d  %d  %d  %d  %d,  %f, %f]\n",Drift->mode, Drift->max, Drift->median, Drift->min, (Drift->min-Drift->max), Drift->mean, Drift->std_dev);
 		return STATUS_GYRO_CAL_DONE;
 	}
 }

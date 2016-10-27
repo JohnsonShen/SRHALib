@@ -18,14 +18,16 @@
 #ifdef NUC122
 #define GYRO_SAMPLE_NUMBER 100
 #else
-#define GYRO_SAMPLE_NUMBER 64
+#define GYRO_SAMPLE_NUMBER 16
 #endif
 #include "Common.h"
 typedef struct   
 { 
 	int16_t buffer[GYRO_SAMPLE_NUMBER];
   float mean;
+  int16_t max;
   int16_t median;
+  int16_t min;
   int16_t mode;
   float std_dev;
   int16_t empirical[3];
@@ -35,4 +37,5 @@ void GyroDynamicCalibrate(int16_t gx, int16_t gy, int16_t gz);
 void GyroDynamicInit(void);
 void GetGyroDynamicCenter(float* gx, float* gy, float* gz);
 bool GyroDynamicGetSteady(void);
+GyroDriftType* GetGyroDrift(char axis);
 #endif

@@ -71,12 +71,24 @@ void CheckStandardDV(GyroDriftType* gyroDrift)
 		err = (gyroDrift->buffer[i]-gyroDrift->mean);
 		sum+=err*err;
 	}
-	sum/=(GYRO_SAMPLE_NUMBER-1);
+	sum/=(GYRO_SAMPLE_NUMBER);
 	gyroDrift->std_dev= sqrt(sum);
 }
 void CheckMedian(GyroDriftType* gyroDrift)
 {
 	gyroDrift->median=gyroDrift->buffer[GYRO_SAMPLE_NUMBER/2];
+}
+void CheckMax(GyroDriftType* gyroDrift)
+{
+	gyroDrift->max=gyroDrift->buffer[0];
+}
+void CheckMin(GyroDriftType* gyroDrift)
+{
+	gyroDrift->min=gyroDrift->buffer[GYRO_SAMPLE_NUMBER-1];
+}
+GyroDriftType* GetGyroDrift(char axis)
+{
+	return &gyroDrift[AHRSID][axis];
 }
 void CheckMode(GyroDriftType* gyroDrift)
 {
@@ -232,6 +244,8 @@ int8_t CheckGyroNormalParam(GyroDriftType* gyroDrift)
 	CheckMean(gyroDrift);
 	CheckStandardDV(gyroDrift);
 	CheckMedian(gyroDrift);
+  CheckMax(gyroDrift);
+  CheckMin(gyroDrift);
 	CheckMode(gyroDrift);
 	CheckEmpirical(gyroDrift);
 	gyroDrift->buffercount=0;
