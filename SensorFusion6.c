@@ -18,6 +18,9 @@
 #include <math.h>
 #include <arm_math.h>
 #include "Common.h"
+#include "AHRSLib.h"
+#include "GyroDriftCalibrate.h"
+extern TimeFrameInfo TimeInfo;
 #define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
 #define TWO_KI_DEF	(2.0f * 0.001f)	// 2 * integral gain
 //#define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
@@ -315,12 +318,20 @@ void sensfusion6UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
     // Compute and apply integral feedback if enabled
     if(twoKi > 0.0f)
     {
+      if(nvtGyroIsSteady()==STATUS_GYRO_STEADY) {
+        integralFBx[AHRSID] = 0;
+        integralFBy[AHRSID] = 0;
+        integralFBz[AHRSID] = 0;
+      }
+        
       integralFBx[AHRSID] += twoKi * halfex * dt;  // integral error scaled by Ki
       integralFBy[AHRSID] += twoKi * halfey * dt;
       integralFBz[AHRSID] += twoKi * halfez * dt;
       gx[AHRSID] += integralFBx[AHRSID];  // apply integral feedback
       gy[AHRSID] += integralFBy[AHRSID];
       gz[AHRSID] += integralFBz[AHRSID];
+      //if((TimeInfo.tick_counter%10000)==0)
+      //  printf("%f  %f  %f - %f\n",halfex,halfey,halfez,integralFBz[AHRSID]);
     }
     else
     {
@@ -471,6 +482,11 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 		halfez = (ax[AHRSID] * halfvy - ay[AHRSID] * halfvx) + (mx[AHRSID] * halfwy - my[AHRSID] * halfwx);
 		// Compute and apply integral feedback if enabled
 		if(twoKi > 0.0f) {
+      if(nvtGyroIsSteady()==STATUS_GYRO_STEADY) {
+        integralFBx[AHRSID] = 0;
+        integralFBy[AHRSID] = 0;
+        integralFBz[AHRSID] = 0;
+      }
 			integralFBx[AHRSID] += twoKi * halfex * dt;	// integral error scaled by Ki
 			integralFBy[AHRSID] += twoKi * halfey * dt;
 			integralFBz[AHRSID] += twoKi * halfez * dt;
