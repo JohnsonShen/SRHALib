@@ -316,17 +316,12 @@ void sensfusion6UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
     halfez = (ax[AHRSID] * halfvy - ay[AHRSID] * halfvx);
 
     // Compute and apply integral feedback if enabled
-    if(twoKi > 0.0f)
-    {
-      if(nvtGyroIsSteady()==STATUS_GYRO_STEADY) {
-        integralFBx[AHRSID] = 0;
-        integralFBy[AHRSID] = 0;
-        integralFBz[AHRSID] = 0;
-      }
-        
+    if((twoKi > 0.0f)&&(GyroDynamicGetSteady()==false))
+    { 
       integralFBx[AHRSID] += twoKi * halfex * dt;  // integral error scaled by Ki
       integralFBy[AHRSID] += twoKi * halfey * dt;
       integralFBz[AHRSID] += twoKi * halfez * dt;
+
       gx[AHRSID] += integralFBx[AHRSID];  // apply integral feedback
       gy[AHRSID] += integralFBy[AHRSID];
       gz[AHRSID] += integralFBz[AHRSID];
@@ -481,15 +476,12 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 		halfey = ((az[AHRSID] * halfvx - ax[AHRSID] * halfvz)*2 + (mz[AHRSID] * halfwx - mx[AHRSID] * halfwz)*0);
 		halfez = (ax[AHRSID] * halfvy - ay[AHRSID] * halfvx) + (mx[AHRSID] * halfwy - my[AHRSID] * halfwx);
 		// Compute and apply integral feedback if enabled
-		if(twoKi > 0.0f) {
-      if(nvtGyroIsSteady()==STATUS_GYRO_STEADY) {
-        integralFBx[AHRSID] = 0;
-        integralFBy[AHRSID] = 0;
-        integralFBz[AHRSID] = 0;
-      }
+		if((twoKi > 0.0f)&&(GyroDynamicGetSteady()==false)) {
+      
 			integralFBx[AHRSID] += twoKi * halfex * dt;	// integral error scaled by Ki
 			integralFBy[AHRSID] += twoKi * halfey * dt;
 			integralFBz[AHRSID] += twoKi * halfez * dt;
+		
 			gx[AHRSID] += integralFBx[AHRSID];	// apply integral feedback
 			gy[AHRSID] += integralFBy[AHRSID];
 			gz[AHRSID] += integralFBz[AHRSID];
