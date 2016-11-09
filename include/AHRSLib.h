@@ -59,6 +59,9 @@
 #define GYRO_CAL_DATA_SIZE    6
 #define ACC_CAL_DATA_SIZE     6
 #define MAG_CAL_DATA_SIZE    10
+#define DRIFT_TYPE_MEAN       0
+#define DRIFT_TYPE_MODE       1
+#define DRIFT_TYPE_MEDIAN     2
 typedef struct {
   int16_t actuatorThrust;
   int16_t  actuatorRoll;
@@ -145,6 +148,7 @@ void nvtSetMotorSmooth(MotorCal_t* MotorCal);
 void nvtSetGyroDeviationTH(int16_t TH);
 int16_t nvtGetGyroDeviationTH(void);
 float nvtGetGyroDeviation(void);
+void nvtSetGyroDriftType(char drifttype);
 #endif	//__AHRS_LIB_H__
 
 

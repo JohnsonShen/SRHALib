@@ -23,6 +23,7 @@
 static GyroDriftType gyroDrift[MAX_AHRS][3];
 int16_t HistogramValue[MAX_AHRS][GYRO_SAMPLE_NUMBER],HistogramCount[MAX_AHRS][GYRO_SAMPLE_NUMBER];
 int16_t StandardDV = STD_DEV_SUM_TH;
+char DriftCenterType = DRIFT_TYPE_MEAN;
 float std_dev_sum;
 void nvtSetGyroDeviationTH(int16_t TH)
 {
@@ -229,9 +230,21 @@ void CheckNormalDistribution()
 	//if((gyroDrift[0].std_dev<=STD_DEV_TH)&&(gyroDrift[1].std_dev<=STD_DEV_TH)&&(gyroDrift[2].std_dev<=STD_DEV_TH)) 
 	if(std_dev_sum<StandardDV)
 	{
-		SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].mean;
-		SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].mean;
-		SensorState[AHRSID].GyroDynamicCenter[2]=gyroDrift[AHRSID][2].mean;
+    if(DriftCenterType == DRIFT_TYPE_MEAN) {
+      SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].mean;
+      SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].mean;
+      SensorState[AHRSID].GyroDynamicCenter[2]=gyroDrift[AHRSID][2].mean;
+    }
+    else if(DriftCenterType == DRIFT_TYPE_MODE) {
+      SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].mode;
+      SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].mode;
+      SensorState[AHRSID].GyroDynamicCenter[2]=gyroDrift[AHRSID][2].mode;
+    }
+    else if(DriftCenterType == DRIFT_TYPE_MEDIAN) {
+      SensorState[AHRSID].GyroDynamicCenter[0]=gyroDrift[AHRSID][0].median;
+      SensorState[AHRSID].GyroDynamicCenter[1]=gyroDrift[AHRSID][1].median;
+      SensorState[AHRSID].GyroDynamicCenter[2]=gyroDrift[AHRSID][2].median;
+    }
 		SensorState[AHRSID].beGyroSteady = true;
 	}
 	else {
@@ -282,4 +295,7 @@ void GyroDynamicInit()
 		gyroDrift[2].buffer[i]=65535;
 	}*/
 }
-
+void nvtSetGyroDriftType(char drifttype)
+{
+  DriftCenterType = drifttype;
+}
