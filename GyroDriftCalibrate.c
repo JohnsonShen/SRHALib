@@ -22,10 +22,10 @@
 #define STD_DEV_TH  2
 static GyroDriftType gyroDrift[MAX_AHRS][3];
 int16_t HistogramValue[MAX_AHRS][GYRO_SAMPLE_NUMBER],HistogramCount[MAX_AHRS][GYRO_SAMPLE_NUMBER];
-int16_t StandardDV = STD_DEV_SUM_TH;
+float StandardDV = STD_DEV_SUM_TH;
 char DriftCenterType = DRIFT_TYPE_MEAN;
 float std_dev_sum;
-void nvtSetGyroDeviationTH(int16_t TH)
+void nvtSetGyroDeviationTH(float TH)
 {
   StandardDV = TH;
 }
@@ -33,7 +33,7 @@ float nvtGetGyroDeviation()
 {
   return std_dev_sum;
 }
-int16_t nvtGetGyroDeviationTH()
+float nvtGetGyroDeviationTH()
 {
   return StandardDV;
 }

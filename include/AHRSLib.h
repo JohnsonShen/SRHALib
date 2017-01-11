@@ -145,8 +145,8 @@ void nvtSmoothSensorRawData(unsigned char enable, char sensor);
 void nvtActuatorFusionFilter(ACTUATOR_T* pActuator);
 void nvtGetActuatorSmooth(int16_t* actuatorSmooth);
 void nvtSetMotorSmooth(MotorCal_t* MotorCal);
-void nvtSetGyroDeviationTH(int16_t TH);
-int16_t nvtGetGyroDeviationTH(void);
+void nvtSetGyroDeviationTH(float TH);
+float nvtGetGyroDeviationTH(void);
 float nvtGetGyroDeviation(void);
 void nvtSetGyroDriftType(char drifttype);
 #endif	//__AHRS_LIB_H__
