@@ -152,6 +152,7 @@ float nvtGetGyroDeviation(void);
 void nvtSetGyroDriftType(char drifttype);
 void nvtAccurtcyTradePerformance(bool Trade);
 bool nvtGetAccurtcyTradePerformance(void);
+void nvtResetDirection(void);
 #endif	//__AHRS_LIB_H__
 
 

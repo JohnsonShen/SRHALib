@@ -91,6 +91,13 @@ int MagMasterTime[MAX_AHRS] = {MAG_MASTER_TIME,MAG_MASTER_TIME};
 
 // TODO: Make math util file
 static float invSqrt(float x);
+void nvtResetDirection()
+{
+  q0[AHRSID] = 1.0f;
+  q1[AHRSID] = 0.0f;
+  q2[AHRSID] = 0.0f;
+  q3[AHRSID] = 0.0f;
+}
 void UpdateMagMasterTime()
 {
 	MagMasterTime[AHRSID] = GetTickCounter() + MAG_MASTER_TIME;
