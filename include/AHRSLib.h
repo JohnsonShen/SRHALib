@@ -18,6 +18,7 @@
 #ifndef __AHRS_LIB_H__
 #define __AHRS_LIB_H__
 #include <stdint.h>
+#include <stdbool.h>
 #define ROLL       0
 #define PITCH      1
 #define YAW      	 2
@@ -141,7 +142,7 @@ signed char nvtCalMAGBufferFill(void);
 void nvtCalMAGInit(void);
 void nvtSetMagGaussPLSB(float);
 uint8_t nvtGetMagCalQFactor(void);
-void nvtSmoothSensorRawData(unsigned char enable, char sensor);
+void nvtSmoothSensorRawData(bool enable, char sensor);
 void nvtActuatorFusionFilter(ACTUATOR_T* pActuator);
 void nvtGetActuatorSmooth(int16_t* actuatorSmooth);
 void nvtSetMotorSmooth(MotorCal_t* MotorCal);
@@ -149,6 +150,8 @@ void nvtSetGyroDeviationTH(float TH);
 float nvtGetGyroDeviationTH(void);
 float nvtGetGyroDeviation(void);
 void nvtSetGyroDriftType(char drifttype);
+void nvtAccurtcyTradePerformance(bool Trade);
+bool nvtGetAccurtcyTradePerformance(void);
 #endif	//__AHRS_LIB_H__
 
 

@@ -16,6 +16,7 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 #include <stdint.h>
+#include <stdbool.h>
 #include "Gauss_Newton_Calibrate.h"
 //#define DBG
 #ifdef DBG
@@ -32,7 +33,6 @@
 #define null 0
 #define false 0
 #define true 	1
-#define bool unsigned char
 #define M_PI 3.1415926535f
 #define GYRO_DYNAMIC_CAL
 #define ACC_DIM  3 

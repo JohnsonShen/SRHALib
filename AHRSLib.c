@@ -31,6 +31,18 @@ static int16_t accelLPF[MAX_AHRS][3];
 int16_t actuator[2];
 MotorCal_t MotorCalL;
 char AHRSID = AHRDID_0;
+char Performance = 0;
+void nvtAccurtcyTradePerformance(bool Trade)
+{
+	if(Trade)
+    Performance = 1;
+  else
+    Performance = 0;
+}
+bool nvtGetAccurtcyTradePerformance()
+{
+  return Performance;
+}
 void SetZWithoutG_Base(float base)
 {
 	ZWithoutG_Base[AHRSID] = base;
