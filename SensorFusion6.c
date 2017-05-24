@@ -21,8 +21,8 @@
 #include "AHRSLib.h"
 #include "GyroDriftCalibrate.h"
 extern TimeFrameInfo TimeInfo;
-#define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
-#define TWO_KI_DEF	(2.0f * 0.001f)	// 2 * integral gain
+#define TWO_KP_DEF	(2.0f * 0.5f)	// 2 * proportional gain
+#define TWO_KI_DEF	(2.0f * 0.003f)	// 2 * integral gain
 //#define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
 //#define TWO_KI_DEF	(2.0f * 0.001f)	// 2 * integral gain
 #define GUASS_ERROR_TH 0.15f
@@ -91,6 +91,16 @@ int MagMasterTime[MAX_AHRS] = {MAG_MASTER_TIME,MAG_MASTER_TIME};
 
 // TODO: Make math util file
 static float invSqrt(float x);
+void nvtSetFusionParam(float Proportional, float Integral)
+{
+  twoKp = Proportional*2;
+  twoKi = Integral*2;
+}
+void nvtGetFusionParam(float *Proportional, float *Integral)
+{
+  *Proportional = twoKp/2.0f;
+  *Integral = twoKi/2.0f;
+}
 void nvtResetDirection()
 {
   q0[AHRSID] = 1.0f;

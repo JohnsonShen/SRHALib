@@ -153,6 +153,20 @@ void nvtSetGyroDriftType(char drifttype);
 void nvtPerformanceOverAccuracy(bool Trade);
 bool nvtGetPerformanceOverAccuracy(void);
 void nvtResetDirection(void);
+/**
+  * @brief  This function provide the sensor fusion parameter adjustment.
+  *         Fine tune between the response time and stability by parameter proportional and integral. 
+  * @param[proportional] Default by 0.5. "proportional" is used to control how much the new sensor data to be referenced by current oriental.
+            Higher proportional means a faster response time and vise versa.  
+  * @param[integral] Default by 0.03. "integral" is used to control how much the new sensor data to be referenced by current oriental for the accumulated oriental info.
+            Higher integral means a faster update to the accumulated info and also result in a faster response time
+  * @return None
+  *
+  * @details nvtSetFusionParam(float Proportional, float Integral) can update both proportional and integral to AHRSLib and 
+            nvtGetFusionParam(float *Proportional, float *Integral) can get current proportional and integral from AHRSLib
+  */
+void nvtSetFusionParam(float Proportional, float Integral);
+void nvtGetFusionParam(float *Proportional, float *Integral);
 #endif	//__AHRS_LIB_H__
 
 
