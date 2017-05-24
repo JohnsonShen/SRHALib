@@ -32,14 +32,14 @@ int16_t actuator[2];
 MotorCal_t MotorCalL;
 char AHRSID = AHRDID_0;
 char Performance = 0;
-void nvtAccurtcyTradePerformance(bool Trade)
+void nvtPerformanceOverAccuracy(bool Trade)
 {
 	if(Trade)
     Performance = 1;
   else
     Performance = 0;
 }
-bool nvtGetAccurtcyTradePerformance()
+bool nvtGetPerformanceOverAccuracy()
 {
   return Performance;
 }

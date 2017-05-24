@@ -364,19 +364,19 @@ void sensfusion6UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
   q3[AHRSID] += (qa * gz[AHRSID] + qb * gy[AHRSID] - qc * gx[AHRSID]);
 
   // Normalise quaternion
-  if(nvtGetAccurtcyTradePerformance()) {
-    recipNorm = sqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
-    q0[AHRSID] /= recipNorm;
-    q1[AHRSID] /= recipNorm;
-    q2[AHRSID] /= recipNorm;
-    q3[AHRSID] /= recipNorm;
-  }
-  else {
+  if(nvtGetPerformanceOverAccuracy()) {
     recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
     q0[AHRSID] *= recipNorm;
     q1[AHRSID] *= recipNorm;
     q2[AHRSID] *= recipNorm;
     q3[AHRSID] *= recipNorm;
+  }
+  else {
+    recipNorm = sqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+    q0[AHRSID] /= recipNorm;
+    q1[AHRSID] /= recipNorm;
+    q2[AHRSID] /= recipNorm;
+    q3[AHRSID] /= recipNorm;
   }
   ComputeEuler();
 	ComputeMotion(axf, ayf, azf, recipNorm, dt);
@@ -528,23 +528,20 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 	q3[AHRSID] += (qa * gz[AHRSID] + qb * gy[AHRSID] - qc * gx[AHRSID]); 
 	
 	// Normalise quaternion
-  if(nvtGetAccurtcyTradePerformance()) {
-    recipNorm = sqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
-    q0[AHRSID] /= recipNorm;
-    q1[AHRSID] /= recipNorm;
-    q2[AHRSID] /= recipNorm;
-    q3[AHRSID] /= recipNorm;
-  }
-  else {
+  if(nvtGetPerformanceOverAccuracy()) {
     recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
     q0[AHRSID] *= recipNorm;
     q1[AHRSID] *= recipNorm;
     q2[AHRSID] *= recipNorm;
     q3[AHRSID] *= recipNorm;
   }
-	
-	
-	
+  else {
+    recipNorm = sqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+    q0[AHRSID] /= recipNorm;
+    q1[AHRSID] /= recipNorm;
+    q2[AHRSID] /= recipNorm;
+    q3[AHRSID] /= recipNorm;
+  }
 	ComputeEuler();
   ComputeMotion(axf, ayf, azf, recipNorm, dt);
 }
@@ -652,11 +649,20 @@ void sensfusionMagUpdateQ(float gxf, float gyf, float gzf, float axf, float ayf,
 	q3[AHRSID] += (qa * gz[AHRSID] + qb * gy[AHRSID] - qc * gx[AHRSID]); 
 	
 	// Normalise quaternion
-	recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
-	q0[AHRSID] *= recipNorm;
-	q1[AHRSID] *= recipNorm;
-	q2[AHRSID] *= recipNorm;
-	q3[AHRSID] *= recipNorm;
+	if(nvtGetPerformanceOverAccuracy()) {
+    recipNorm = invSqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+    q0[AHRSID] *= recipNorm;
+    q1[AHRSID] *= recipNorm;
+    q2[AHRSID] *= recipNorm;
+    q3[AHRSID] *= recipNorm;
+  }
+  else {
+    recipNorm = sqrt(q0[AHRSID] * q0[AHRSID] + q1[AHRSID] * q1[AHRSID] + q2[AHRSID] * q2[AHRSID] + q3[AHRSID] * q3[AHRSID]);
+    q0[AHRSID] /= recipNorm;
+    q1[AHRSID] /= recipNorm;
+    q2[AHRSID] /= recipNorm;
+    q3[AHRSID] /= recipNorm;
+  }
 	
 	ComputeEuler();
   ComputeMotion(axf, ayf, azf, recipNorm, dt);
