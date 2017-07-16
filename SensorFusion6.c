@@ -22,14 +22,14 @@
 #include "GyroDriftCalibrate.h"
 extern TimeFrameInfo TimeInfo;
 #define TWO_KP_DEF	(2.0f * 0.5f)	// 2 * proportional gain
-#define TWO_KI_DEF	(2.0f * 0.003f)	// 2 * integral gain
+#define TWO_KI_DEF	(0.0f * 0.003f)	// 2 * integral gain
 //#define TWO_KP_DEF	(2.0f * 0.4f)	// 2 * proportional gain
 //#define TWO_KI_DEF	(2.0f * 0.001f)	// 2 * integral gain
 #define GUASS_ERROR_TH 0.15f
 #define ACC_TH 0.1f
 #define VG_TH 0.01f
 #define SPEED_DEC_RATIO 0.99f
-#define MAG_MASTER_TIME 1000 /* ms */
+#define MAG_MASTER_TIME 10000 /* 1ms */
 
 float twoKp = TWO_KP_DEF;    // 2 * proportional gain (Kp)
 float twoKi = TWO_KI_DEF;    // 2 * integral gain (Ki)
@@ -496,8 +496,8 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
     halfwz = bx * (q0q2 + q1q3) + bz * (0.5f - q1q1 - q2q2);  
 	
 		// Error is sum of cross product between estimated direction and measured direction of field vectors
-		halfex = ((ay[AHRSID] * halfvz - az[AHRSID] * halfvy)*2 + (my[AHRSID] * halfwz - mz[AHRSID] * halfwy)*0);
-		halfey = ((az[AHRSID] * halfvx - ax[AHRSID] * halfvz)*2 + (mz[AHRSID] * halfwx - mx[AHRSID] * halfwz)*0);
+		halfex = ((ay[AHRSID] * halfvz - az[AHRSID] * halfvy) + (my[AHRSID] * halfwz - mz[AHRSID] * halfwy));
+		halfey = ((az[AHRSID] * halfvx - ax[AHRSID] * halfvz) + (mz[AHRSID] * halfwx - mx[AHRSID] * halfwz));
 		halfez = (ax[AHRSID] * halfvy - ay[AHRSID] * halfvx) + (mx[AHRSID] * halfwy - my[AHRSID] * halfwx);
 		// Compute and apply integral feedback if enabled
 		if((twoKi > 0.0f)&&(GyroDynamicGetSteady()==false)) {
