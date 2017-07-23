@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "AHRSLib.h"
 #include "GyroDriftCalibrate.h"
+#include "SensorFusion6.h"
 extern TimeFrameInfo TimeInfo;
 #define TWO_KP_DEF	(2.0f * 0.5f)	// 2 * proportional gain
 #define TWO_KI_DEF	(0.0f * 0.003f)	// 2 * integral gain
@@ -29,7 +30,7 @@ extern TimeFrameInfo TimeInfo;
 #define ACC_TH 0.1f
 #define VG_TH 0.01f
 #define SPEED_DEC_RATIO 0.99f
-#define MAG_MASTER_TIME 10000 /* 1ms */
+#define MAG_MASTER_TIME 10000 /* 1000 ms */
 
 float twoKp = TWO_KP_DEF;    // 2 * proportional gain (Kp)
 float twoKi = TWO_KI_DEF;    // 2 * integral gain (Ki)
@@ -107,14 +108,12 @@ void nvtResetDirection()
   q1[AHRSID] = 0.0f;
   q2[AHRSID] = 0.0f;
   q3[AHRSID] = 0.0f;
+	UpdateMagMasterTime();
 }
 void UpdateMagMasterTime()
 {
 	MagMasterTime[AHRSID] = GetTickCounter() + MAG_MASTER_TIME;
-	q0[AHRSID] = 1.0f;
-	q1[AHRSID] = 0.0f;
-	q2[AHRSID] = 0.0f;
-	q3[AHRSID] = 0.0f;
+	//printf("MagMasterTime:%d+%d=%d\n",GetTickCounter(),MAG_MASTER_TIME,MagMasterTime[AHRSID]);
 }
 void ComputeEuler()
 {
@@ -301,10 +300,16 @@ void sensfusion6UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
   float halfex, halfey, halfez;
   float qa, qb, qc;
 	float no_gyro_factor = 0.0f;
-
-  gx[AHRSID] = gxf * M_PI / 180.0f;
-  gy[AHRSID] = gyf * M_PI / 180.0f;
-  gz[AHRSID] = gzf * M_PI / 180.0f;
+	if(GetTickCounter()>MagMasterTime[AHRSID]) {
+		gx[AHRSID] = gxf * M_PI / 180.0f;
+		gy[AHRSID] = gyf * M_PI / 180.0f;
+		gz[AHRSID] = gzf * M_PI / 180.0f;
+	}
+	else {
+		gx[AHRSID] = 0;
+		gy[AHRSID] = 0;
+		gz[AHRSID] = 0;
+	}
 	
 
 	gx_deg[AHRSID] += gxf*dt;
@@ -359,9 +364,13 @@ void sensfusion6UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
   }
 
   // Integrate rate of change of quaternion
-  gx[AHRSID] *= ((0.5f + no_gyro_factor) * dt);   // pre-multiply common factors
-  gy[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
-  gz[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+	if(GetTickCounter()>MagMasterTime[AHRSID]) {
+    gx[AHRSID] *= ((0.5f + no_gyro_factor) * dt);   // pre-multiply common factors
+    gy[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+    gz[AHRSID] *= ((0.5f + no_gyro_factor) * dt);
+	}
+	//else
+	//	printf("[0]%d,%d\n", GetTickCounter(),MagMasterTime[AHRSID]);
   /*gx *= (0.9f * dt);   // pre-multiply common factors
   gy *= (0.9f * dt);
   gz *= (0.9f * dt);*/
@@ -446,9 +455,16 @@ void sensfusion9UpdateQ(float gxf, float gyf, float gzf, float axf, float ayf, f
 	if(((gxf == 0.0f) && (gyf == 0.0f) && (gzf == 0.0f)))
 		no_gyro_factor = 8.0f;
 
-	gx[AHRSID] = gxf * M_PI / 180.0f;
-  gy[AHRSID] = gyf * M_PI / 180.0f;
-  gz[AHRSID] = gzf * M_PI / 180.0f;
+	if(GetTickCounter()>MagMasterTime[AHRSID]) {
+		gx[AHRSID] = gxf * M_PI / 180.0f;
+		gy[AHRSID] = gyf * M_PI / 180.0f;
+		gz[AHRSID] = gzf * M_PI / 180.0f;
+	}
+	else {
+		gx[AHRSID] = 0;
+		gy[AHRSID] = 0;
+		gz[AHRSID] = 0;
+	}
 	
 	gx_deg[AHRSID] += gxf*dt;
 	gy_deg[AHRSID] += gyf*dt;

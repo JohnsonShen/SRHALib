@@ -95,25 +95,37 @@ void SensorStateInit()
     SensorState[i].RawSmooth.enable[HALL] = false;
   }
 }
-void CalInfoInit()
+void nvtSetCalDataDefault(uint8_t UPDATE)
 {
   uint8_t i;
   for(i = 0;i< MAX_AHRS;i++) {
-    CalInfo[i].AccMean[0] = 0;
-    CalInfo[i].AccMean[1] = 0;
-    CalInfo[i].AccMean[2] = 0;
-    CalInfo[i].AccScale[0] = 1;
-    CalInfo[i].AccScale[1] = 1;
-    CalInfo[i].AccScale[2] = 1;
-    
-    CalInfo[i].GyroMean[0] = 0;
-    CalInfo[i].GyroMean[1] = 0;
-    CalInfo[i].GyroMean[2] = 0;
-    CalInfo[i].GyroScale[0] = 1;
-    CalInfo[i].GyroScale[1] = 1;
-    CalInfo[i].GyroScale[2] = 1;
-    
-    CalInfo[i].MagInvW[0] = 0;
+		if(UPDATE&SENSOR_ACC){
+			CalInfo[i].AccMean[0]   = 0;
+			CalInfo[i].AccMean[1]   = 0;
+			CalInfo[i].AccMean[2]   = 0;
+			CalInfo[i].AccScale[0]  = 1;
+			CalInfo[i].AccScale[1]  = 1;
+			CalInfo[i].AccScale[2]  = 1;
+			CalInfo[i].AccRotate[0] = 1;
+			CalInfo[i].AccRotate[1] = 0;
+			CalInfo[i].AccRotate[2] = 0;
+			CalInfo[i].AccRotate[3] = 0;
+			CalInfo[i].AccRotate[4] = 1;
+			CalInfo[i].AccRotate[5] = 0;
+			CalInfo[i].AccRotate[6] = 0;
+			CalInfo[i].AccRotate[7] = 0;
+			CalInfo[i].AccRotate[8] = 1;
+	  }
+		if(UPDATE&SENSOR_GYRO){
+			CalInfo[i].GyroMean[0] = 0;
+			CalInfo[i].GyroMean[1] = 0;
+			CalInfo[i].GyroMean[2] = 0;
+			CalInfo[i].GyroScale[0] = 1;
+			CalInfo[i].GyroScale[1] = 1;
+			CalInfo[i].GyroScale[2] = 1;
+		}
+		if(UPDATE&SENSOR_MAG){
+		CalInfo[i].MagInvW[0] = 0;
     CalInfo[i].MagInvW[1] = 0;
     CalInfo[i].MagInvW[2] = 0;
     CalInfo[i].MagInvW[3] = 0.0002;
@@ -123,6 +135,7 @@ void CalInfoInit()
     CalInfo[i].MagInvW[7] = 0.000f;
     CalInfo[i].MagInvW[8] = 0.000f;
     CalInfo[i].MagInvW[9] = 1.0;
+		}
   }
 }
 void TimeInfoInit()
@@ -140,10 +153,11 @@ void nvtAHRSInit()
 	SetupSecurityID();
 	GUARD
 	SensorStateInit();
-	CalInfoInit();
+	nvtSetCalDataDefault(SENSOR_ACC|SENSOR_GYRO|SENSOR_MAG);
 	TimeInfoInit();
 	TimerStart();
 	AccFilterInit();
+	nvtResetDirection();
 }
 void nvtGetEulerRPY(float* rpy)
 {
@@ -223,6 +237,7 @@ void nvtUpdateAHRS(uint8_t UPDATE)
 {
 	float CACC[3]={0,0,0}, CGYRO[3]={0,0,0}, CMAG[3]={0,0,0};
 	GUARD
+
 	if(UPDATE&SENSOR_ACC){
 		CACC[0] = AttitudeInfo[AHRSID].CalACC[0];
 		CACC[1] = AttitudeInfo[AHRSID].CalACC[1];
@@ -459,6 +474,19 @@ void nvtGetAccScale(float* scale)
 	scale[1] = CalInfo[AHRSID].AccScale[1];
 	scale[2] = CalInfo[AHRSID].AccScale[2];
 }
+void nvtGetAccRotate(float* rotate)
+{
+
+	rotate[0] = CalInfo[AHRSID].AccRotate[0];
+	rotate[1] = CalInfo[AHRSID].AccRotate[1];
+	rotate[2] = CalInfo[AHRSID].AccRotate[2];
+	rotate[3] = CalInfo[AHRSID].AccRotate[3];
+	rotate[4] = CalInfo[AHRSID].AccRotate[4];
+	rotate[5] = CalInfo[AHRSID].AccRotate[5];
+	rotate[6] = CalInfo[AHRSID].AccRotate[6];
+	rotate[7] = CalInfo[AHRSID].AccRotate[7];
+	rotate[8] = CalInfo[AHRSID].AccRotate[8];
+}
 void nvtGetGyroOffset(float* offset)
 {
 	offset[0] = CalInfo[AHRSID].GyroMean[0];
@@ -494,6 +522,18 @@ void nvtSetAccScale(float* AccScale)
 	CalInfo[AHRSID].AccScale[AXIS_Y] = AccScale[AXIS_Y];
 	CalInfo[AHRSID].AccScale[AXIS_Z] = AccScale[AXIS_Z];
 }
+void nvtSetAccRotate(float* AccRotate)
+{
+	CalInfo[AHRSID].AccRotate[0] = AccRotate[0];
+	CalInfo[AHRSID].AccRotate[1] = AccRotate[1];
+	CalInfo[AHRSID].AccRotate[2] = AccRotate[2];
+	CalInfo[AHRSID].AccRotate[3] = AccRotate[3];
+	CalInfo[AHRSID].AccRotate[4] = AccRotate[4];
+	CalInfo[AHRSID].AccRotate[5] = AccRotate[5];
+	CalInfo[AHRSID].AccRotate[6] = AccRotate[6];
+	CalInfo[AHRSID].AccRotate[7] = AccRotate[7];
+	CalInfo[AHRSID].AccRotate[8] = AccRotate[8];
+}
 void nvtSetGyroOffset(float* GyroMean)
 {
 	CalInfo[AHRSID].GyroMean[AXIS_X] = GyroMean[AXIS_X];
@@ -511,7 +551,6 @@ void nvtSetMagCalMatrix(float* MagCalMatrix)
 	int i;
 	for(i=0;i<MAG_CAL_DATA_SIZE;i++)
 		CalInfo[AHRSID].MagInvW[i] = MagCalMatrix[i];
-	UpdateMagMasterTime();
 	SetMagGuass();
 }
 void nvtActuatorFusionFilter(ACTUATOR_T* pActuator)

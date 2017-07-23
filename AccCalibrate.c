@@ -26,6 +26,7 @@
 int16_t BufferRawACC[MAX_AHRS][SAMPLE_SIZE_ACC*3];
 int16_t BufferIndexACC[MAX_AHRS][SIDE_ACC];
 int8_t	bufferFillFlag[MAX_AHRS];
+static float ACC_Rotate[ACC_ROTATE_SIZE]; 
 
 typedef struct {
 	char		state;
@@ -57,6 +58,9 @@ void FilterACCInit()
 void nvtCalACCInit()
 {
 	int i,j;
+	float quaternion[4];
+	float q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
+	
   for(j=0;j<MAX_AHRS;j++) {
 	for(i=0;i<SIDE_ACC;i++)
       BufferIndexACC[j][i] = 0;
@@ -64,8 +68,23 @@ void nvtCalACCInit()
     SensorState[j].beCalibrated[ACC] = false;
     bufferFillFlag[j] = 0;
   }
+	nvtGetQuaternion(quaternion);
+
+	//q0q0 = InitialQuaternion[0] * InitialQuaternion[0];
+  q0q1 = quaternion[0] * quaternion[1];
+  q0q2 = quaternion[0] * quaternion[2];
+  q0q3 = quaternion[0] * quaternion[3];
+  q1q1 = quaternion[1] * quaternion[1];
+  q1q2 = quaternion[1] * quaternion[2];
+  q1q3 = quaternion[1] * quaternion[3];
+  q2q2 = quaternion[2] * quaternion[2];
+  q2q3 = quaternion[2] * quaternion[3];
+  q3q3 = quaternion[2] * quaternion[3];
+	ACC_Rotate[0] = 2*(0.5f - q2q2 - q3q3);ACC_Rotate[1] = 2*(q1q2 - q0q3);       ACC_Rotate[2] = 2*(q1q3 + q0q2);
+	ACC_Rotate[3] = 2*(q1q2 + q0q3);       ACC_Rotate[4] = 2*(0.5f - q1q1 - q3q3);ACC_Rotate[5] = 2*(q2q3 - q0q1);
+	ACC_Rotate[6] = 2*(q1q3 - q0q2);       ACC_Rotate[7] = 2*(q2q3 + q0q1);       ACC_Rotate[8] = 2*(0.5f - q1q1 - q2q2);
 }
-void UpdateCalibrateInfoACC()
+void UpdateCalibrateInfoACC(bool beRotate)
 {
 	float *BetaACC;
 	BetaACC = GetCalibrateParams(SENSOR_ACC);
@@ -74,14 +93,40 @@ void UpdateCalibrateInfoACC()
 	CalInfo[AHRSID].AccMean[2] = BetaACC[2];
 	CalInfo[AHRSID].AccScale[0] = BetaACC[3];
 	CalInfo[AHRSID].AccScale[1] = BetaACC[4];
-	CalInfo[AHRSID].AccScale[2]= BetaACC[5];
+	CalInfo[AHRSID].AccScale[2] = BetaACC[5];
+	if(beRotate) {
+		CalInfo[AHRSID].AccRotate[0] = ACC_Rotate[0];
+		CalInfo[AHRSID].AccRotate[1] = ACC_Rotate[1];
+		CalInfo[AHRSID].AccRotate[2] = ACC_Rotate[2];
+		CalInfo[AHRSID].AccRotate[3] = ACC_Rotate[3];
+		CalInfo[AHRSID].AccRotate[4] = ACC_Rotate[4];
+		CalInfo[AHRSID].AccRotate[5] = ACC_Rotate[5];
+		CalInfo[AHRSID].AccRotate[6] = ACC_Rotate[6];
+		CalInfo[AHRSID].AccRotate[7] = ACC_Rotate[7];
+		CalInfo[AHRSID].AccRotate[8] = ACC_Rotate[8];
+	}
+	else {
+		CalInfo[AHRSID].AccRotate[0] = 1;
+    CalInfo[AHRSID].AccRotate[1] = 0;
+    CalInfo[AHRSID].AccRotate[2] = 0;
+    CalInfo[AHRSID].AccRotate[3] = 0;
+    CalInfo[AHRSID].AccRotate[4] = 1;
+    CalInfo[AHRSID].AccRotate[5] = 0;
+    CalInfo[AHRSID].AccRotate[6] = 0;
+    CalInfo[AHRSID].AccRotate[7] = 0;
+    CalInfo[AHRSID].AccRotate[8] = 1;
+	}
 	SensorState[AHRSID].beCalibrated[ACC]  = true;
 }
 void SetCalibrateACC()
 {
-	AttitudeInfo[AHRSID].CalACC[0] = (SensorState[AHRSID].RawACC[0] -  CalInfo[AHRSID].AccMean[0]) * CalInfo[AHRSID].AccScale[0];
-	AttitudeInfo[AHRSID].CalACC[1] = (SensorState[AHRSID].RawACC[1] -  CalInfo[AHRSID].AccMean[1]) * CalInfo[AHRSID].AccScale[1];
-	AttitudeInfo[AHRSID].CalACC[2] = (SensorState[AHRSID].RawACC[2] -  CalInfo[AHRSID].AccMean[2]) * CalInfo[AHRSID].AccScale[2];
+	float RawACC[3];
+	RawACC[0] = SensorState[AHRSID].RawACC[0] * CalInfo[AHRSID].AccRotate[0] + SensorState[AHRSID].RawACC[1] * CalInfo[AHRSID].AccRotate[1] + SensorState[AHRSID].RawACC[2] * CalInfo[AHRSID].AccRotate[2];
+  RawACC[1] = SensorState[AHRSID].RawACC[0] * CalInfo[AHRSID].AccRotate[3] + SensorState[AHRSID].RawACC[1] * CalInfo[AHRSID].AccRotate[4] + SensorState[AHRSID].RawACC[2] * CalInfo[AHRSID].AccRotate[5];
+  RawACC[2] = SensorState[AHRSID].RawACC[0] * CalInfo[AHRSID].AccRotate[6] + SensorState[AHRSID].RawACC[1] * CalInfo[AHRSID].AccRotate[7] + SensorState[AHRSID].RawACC[2] * CalInfo[AHRSID].AccRotate[8];
+	AttitudeInfo[AHRSID].CalACC[0] = (RawACC[0] -  CalInfo[AHRSID].AccMean[0]) * CalInfo[AHRSID].AccScale[0];
+	AttitudeInfo[AHRSID].CalACC[1] = (RawACC[1] -  CalInfo[AHRSID].AccMean[1]) * CalInfo[AHRSID].AccScale[1];
+	AttitudeInfo[AHRSID].CalACC[2] = (RawACC[2] -  CalInfo[AHRSID].AccMean[2]) * CalInfo[AHRSID].AccScale[2];
 }
 void nvtGetCalibratedACC(float* CalACC)
 {
@@ -154,12 +199,12 @@ int8_t nvtCalACCBufferFill(int8_t Dir)
 		bufferFillFlag[AHRSID]|=(1<<Dir);
 		if(bufferFillFlag[AHRSID]==0x3F) {
 			AccCalibrate(BufferRawACC[AHRSID], SAMPLE_SIZE_ACC);
-			UpdateCalibrateInfoACC();
+			UpdateCalibrateInfoACC(true);
 			return STATUS_CAL_DONE;
 		}
 		else if(Dir==0){
 			AccZCalibrate(BufferRawACC[AHRSID], SAMPLE_ACC_PER_SIDE);
-			UpdateCalibrateInfoACC();
+			UpdateCalibrateInfoACC(false);
 			return STATUS_BUFFER_FILLED;
 		}
 		else {

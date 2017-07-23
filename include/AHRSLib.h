@@ -58,7 +58,7 @@
 #define SENSOR_BARO       (1<<BARO)
 #define SENSOR_HALL       (1<<HALL)
 #define GYRO_CAL_DATA_SIZE    6
-#define ACC_CAL_DATA_SIZE     6
+#define ACC_CAL_DATA_SIZE     15
 #define MAG_CAL_DATA_SIZE    10
 #define DRIFT_TYPE_MEAN       0
 #define DRIFT_TYPE_MODE       1
@@ -108,12 +108,14 @@ void nvtInputSensorRaw9D(int16_t *RawACC, int16_t *RawGYRO, int16_t *RawMAG);
 void nvtGetAccZWithoutGravity(float *ZWithoutGravity, float *AccZMag);
 void nvtGetAccOffset(float*);
 void nvtGetAccScale(float*);
+void nvtGetAccRotate(float*);
 void nvtGetGyroOffset(float* );
 void nvtGetGyroScale(float*);
 void nvtGetMagCalMatrix(float*);
 char nvtGetAHRSID(void);
 void nvtSetAccOffset(float* AccMean);
 void nvtSetAccScale(float* AccScale);
+void nvtSetAccRotate(float* AccRotate);
 void nvtSetGyroOffset(float* GyroMean);
 void nvtSetGyroScale(float* GyroScale);
 void nvtSetGYRODegPLSB(float DPLSB);
@@ -153,6 +155,7 @@ void nvtSetGyroDriftType(char drifttype);
 void nvtPerformanceOverAccuracy(bool Trade);
 bool nvtGetPerformanceOverAccuracy(void);
 void nvtResetDirection(void);
+void nvtSetCalDataDefault(uint8_t);
 /**
   * @brief  This function provide the sensor fusion parameter adjustment.
   *         Fine tune between the response time and stability by parameter proportional and integral. 

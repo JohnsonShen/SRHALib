@@ -55,6 +55,7 @@ typedef struct {
 typedef struct {
 	float 	AccMean[ACC_DIM];
 	float 		AccScale[ACC_DIM];
+	float 		AccRotate[ACC_DIM*3];
 	float 	  GyroMean[GYRO_DIM];
 	float 		GyroScale[GYRO_DIM];
 	float 		MagInvW[MAG_BETA_SIZE]; 
