@@ -25,9 +25,9 @@ static uint32_t UID[3],UCID[4],PID;
 #define NUC123 0x00012315
 #define NANO105 0x00002800
 #define NUC140 0x02508c0a
-#define M452   0x001dca640x001f468b,0x011ccfc0,0x001f47ea,0x031f0e97
+#define M452   0x00840000,0x00940000
 #define M452LG6AE   0x00845200
-uint32_t IC_LIST[] = {NUC123, M452LG6AE,NANO105};
+uint32_t IC_LIST[] = {NUC123,M452,NANO105};
 #ifndef M451
 uint32_t FMCReadPID(void)
 {
@@ -143,7 +143,7 @@ uint8_t CheckSecurityID(void)
 #ifndef M451
 		if((PID&0x0000ff00)==(IC_LIST[i]&0x0000ff00))
 #else
-		if((PID&0xfffff000)==(IC_LIST[i]&0xfffff000))
+		if((PID&0xffff0000)==(IC_LIST[i]&0xffff0000))
 #endif
 		return 0;
 	}
