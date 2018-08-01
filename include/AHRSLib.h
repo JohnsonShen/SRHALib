@@ -136,9 +136,12 @@ void nvtCalACCInit(void);
 signed char nvtCalACCBufferFill(int8_t Dir);
 
 signed char nvtGyroScaleCalibrate(int8_t axis);
+signed char nvtGyroScaleCalibrateM(int8_t axis, int8_t state);
+
 signed char nvtGyroCenterCalibrate(void);
 signed char nvtGyroIsSteady(void);
 void nvtCalGyroInit(char axis);
+void nvtCalGyroInitM(char axis);
 
 signed char nvtCalMAGBufferFill(void);
 void nvtCalMAGInit(void);

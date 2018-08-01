@@ -29,6 +29,11 @@ void nvtCalGyroInit(char axis)
 	AxisDoneFlag[AHRSID]&=~(1<<axis);
 	while(nvtGyroCenterCalibrate()==STATUS_GYRO_CAL_RUNNING);
 }
+void nvtCalGyroInitM(char axis)
+{
+	GyroDeg[AHRSID][axis] = 0;GyroTestStatus[AHRSID][axis] = STATUS_GYRO_CAL_BEGINE;
+	AxisDoneFlag[AHRSID]&=~(1<<axis);
+}
 int8_t nvtGyroIsSteady()
 {
 	GyroDynamicCalibrate(SensorState[AHRSID].RawGYRO[0], SensorState[AHRSID].RawGYRO[1], SensorState[AHRSID].RawGYRO[2]);
@@ -101,6 +106,24 @@ int8_t GyroScaleCalibrate(int8_t axis, float intervalSec)
 	else
 		return STATUS_GYRO_CAL_RUNNING;
 }
+void GyroScaleCalibrateM(int8_t axis, float intervalSec)
+{
+	float GyroCorrected;
+
+	GyroCorrected = (float)SensorState[AHRSID].RawGYRO[axis]*CalInfo[AHRSID].GyroDegPLSB - CalInfo[AHRSID].GyroMean[axis]*CalInfo[AHRSID].GyroDegPLSB;
+	GyroDeg[AHRSID][axis]+=GyroCorrected*intervalSec;
+}
+int8_t GyroScaleCalibrateMDone(int8_t axis)
+{
+		if(GyroDeg[AHRSID][axis]<0)
+      GyroDeg[AHRSID][axis]=-GyroDeg[AHRSID][axis];
+		CalInfo[AHRSID].GyroScale[axis]=(float)(360.0f*3/GyroDeg[AHRSID][axis]);
+		printf("%f:",GyroDeg[AHRSID][axis]);
+		
+		AxisDoneFlag[AHRSID]|=(1<<axis);
+	
+  return STATUS_GYRO_AXIS_CAL_DONE;
+}
 int8_t nvtGyroScaleCalibrate(int8_t axis)
 {
 	if(GyroTestStatus[AHRSID][axis]==STATUS_GYRO_CAL_BEGINE) {
@@ -117,6 +140,22 @@ int8_t nvtGyroScaleCalibrate(int8_t axis)
 	
 	TimerSet();
 	return GyroTestStatus[AHRSID][axis];
+}
+int8_t nvtGyroScaleCalibrateM(int8_t axis, int8_t state)
+{
+	if(state==STATUS_GYRO_CAL_BEGINE) {
+		TimerStart();
+	}
+	else if(state==STATUS_GYRO_CAL_RUNNING) {
+		GyroScaleCalibrateM(axis, TimerRead());
+    TimerSet();
+	}
+  else if(state==STATUS_GYRO_CAL_DONE) {
+		GyroTestStatus[AHRSID][axis]=GyroScaleCalibrateMDone(axis);
+    DBG_PRINT("%f\n",	GyroDeg[AHRSID][axis])
+	}
+	
+	return state;
 }
 void SetCalibrateGYRO()
 {
